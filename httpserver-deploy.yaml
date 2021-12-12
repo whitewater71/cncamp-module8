@@ -15,7 +15,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: httpserver
-          image: whitewatermy/go_httpserver:v1.2
+          image: whitewatermy/go_httpserver:v1.3
           resources:
             requests:
               memory: "64Mi"
