@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpserver
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: httpserver
+  template:
+    metadata:
+      labels:
+        app: httpserver
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: httpserver
+          image: whitewatermy/go_httpserver:v1.2
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          args:
+          - /httpserver
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          env:
+          - name: VERSION
+            valueFrom:
+              configMapKeyRef:
+                name: httpserver-env-config
+                key: VERSION
+          - name: MY_SERVICE_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: httpserver-env-config
+                key: MY_SERVICE_PORT
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"]
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "httpserver -s quit; while killall -0 httpserver; do sleep 1; done"]
